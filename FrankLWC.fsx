@@ -126,8 +126,15 @@ type LWControl() =
     abstract OnMouseMove : MouseEventArgs -> unit
     default this.OnMouseMove e = 
         let p = PointF(single e.X, single e.Y)
-        match (lwcontrols |> Seq.tryFind (fun c -> HitTest p c.Region )) with
-        | Some c -> c.OnMouseMove(e);
+        match (lwcontrols |> Seq.tryFind (fun c -> 
+            let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
+            HitTest pp c.Region
+            )) with
+        | Some c ->
+            let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
+            pp <- transformPoint c.Matrixs.V2W pp
+            let ee = new MouseEventArgs(MouseButtons.None,1, int pp.X, int pp.Y,0) 
+            c.OnMouseMove(ee)
         | None -> ()
         mousemoveevt.Trigger(e)
 
@@ -249,8 +256,15 @@ and LWContainer() as this =
 
     override this.OnMouseMove e =
         let p = PointF(single e.X, single e.Y)
-        match (lwcontrols |> Seq.tryFind (fun c -> HitTest p c.Region )) with
-        | Some c -> c.OnMouseMove(e);
+        match (lwcontrols |> Seq.tryFind (fun c -> 
+            let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
+            HitTest pp c.Region
+            )) with
+        | Some c ->
+            let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
+            pp <- transformPoint c.Matrixs.V2W pp
+            let ee = new MouseEventArgs(MouseButtons.None,1, int pp.X, int pp.Y,0) 
+            c.OnMouseMove(ee)
         | None -> ()
 
     override this.OnPaint e =
