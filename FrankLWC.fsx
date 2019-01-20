@@ -50,7 +50,7 @@ type LWControl() =
 
     let mutable location = PointF(0.f, 0.f)
     let mutable region = new Region()
-    let mutable parent : LWContainer = LWContainer() //perche non so come inizializzarlo a null
+    let mutable parent : LWContainer = Unchecked.defaultof<LWContainer>
     let lwcontrols = ResizeArray<LWControl>() //ogni LWC è container a sua volta
     let mutable matrixs = TransformMatrixs()
     let mutable select = false
