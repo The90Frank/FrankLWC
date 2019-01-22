@@ -1,6 +1,7 @@
 open System.Windows.Forms
 open System.Drawing
 open System.Drawing.Drawing2D
+open System
 
 type TransformMatrixs() =
     let mutable w2v = new Drawing2D.Matrix()
@@ -113,7 +114,9 @@ type LWControl() =
         let p = PointF(single e.X, single e.Y)
         match (lwcontrols |> Seq.tryFind (fun c -> 
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
-            HitTest pp c.Region
+            let r = c.Region
+            r.Transform(c.Matrixs.W2V)
+            HitTest pp r
             )) with
         | Some c ->
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
@@ -128,7 +131,9 @@ type LWControl() =
         let p = PointF(single e.X, single e.Y)
         match (lwcontrols |> Seq.tryFind (fun c -> 
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
-            HitTest pp c.Region
+            let r = c.Region
+            r.Transform(c.Matrixs.W2V)
+            HitTest pp r
             )) with
         | Some c ->
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
@@ -239,7 +244,9 @@ and LWContainer() as this =
         let p = PointF(single e.X, single e.Y)
         match (lwcontrols |> Seq.tryFind (fun c -> 
             let pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
-            HitTest pp c.Region
+            let r = c.Region
+            r.Transform(c.Matrixs.W2V)
+            HitTest pp r
             )) with
         | Some c ->
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
@@ -258,7 +265,9 @@ and LWContainer() as this =
         let p = PointF(single e.X, single e.Y)
         match (lwcontrols |> Seq.tryFind (fun c -> 
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
-            HitTest pp c.Region
+            let r = c.Region
+            r.Transform(c.Matrixs.W2V)
+            HitTest pp r            
             )) with
         | Some c ->
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
