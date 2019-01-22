@@ -40,7 +40,6 @@ type TransformMatrixs() =
         v2w.Translate(xc,yc,MatrixOrder.Append) 
 
     member this.W2V with get() = w2v.Clone()
-
     member this.V2W with get() = v2w.Clone()
 
 type LWControl() =
@@ -70,9 +69,7 @@ type LWControl() =
     
     member this.Matrixs 
         with get() = matrixs
-        and set(v:TransformMatrixs) = do
-            matrixs.V2W <- v.V2W
-            matrixs.W2V <- v.W2V
+        and set(v:TransformMatrixs) = matrixs <- v
     
     member this.Region 
         with get() = region.Clone()
@@ -179,7 +176,7 @@ type LWControl() =
             m.Translate(c.Location.X,c.Location.Y)
             m.Multiply(c.Matrixs.W2V)
             g.Transform <- m
-            g.SetClip(c.Region, CombineMode.Replace)
+            g.SetClip(c.Region, CombineMode.Intersect)
             c.OnPaint e
             g.ResetClip()
         done
