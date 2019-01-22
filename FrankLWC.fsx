@@ -39,13 +39,9 @@ type TransformMatrixs() =
         w2v.Translate(-xc,-yc)
         v2w.Translate(xc,yc,MatrixOrder.Append) 
 
-    member this.W2V 
-        with get() = w2v.Clone()
-        and set(v:Matrix) = w2v <- v.Clone()
+    member this.W2V with get() = w2v.Clone()
 
-    member this.V2W 
-        with get() = v2w.Clone()
-        and set(v:Matrix) = v2w <- v.Clone()
+    member this.V2W with get() = v2w.Clone()
 
 type LWControl() =
 
