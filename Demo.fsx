@@ -1,21 +1,26 @@
+open System.Drawing.Drawing2D
+open System
 #load "FrankLWC.fsx"
 open FrankLWC
 open System.Windows.Forms
 open System.Drawing
-let f = new Form(Size = Size(400,400))
+let f = new Form(Size = Size(500,500))
 f.Show()
 
-let auxC = new LWContainer(Location = Point(0,0), Size = Size(400,400))
+let auxC = new LWContainer(Location = Point(0,0), Dock = DockStyle.Fill)
 auxC.BackColor <- Color.Brown
 
-let auxA = new LWControl(Location = PointF(100.f,50.f), Region = new Region(new Rectangle(0,0,200,200)))
+let gp = new GraphicsPath()
+gp.AddBezier(PointF(0.f,0.f),PointF(0.f,300.f),PointF(300.f,300.f),PointF(0.f,0.f))
+let reg = new Region(gp)
+let auxA = new LWControl(Location = PointF(100.f,50.f), Region = reg)
 let auxB = new LWControl(Location = PointF(10.f,10.f), Region = new Region(new Rectangle(0,0,50,50)))
 
 auxA.Paint.Add(
     fun e -> 
         let g = e.Graphics
         let b = Brushes.LightBlue
-        g.FillRectangle(b, 0,0,200,200)
+        g.FillRectangle(b, 0,0,900,900)
 )
 
 let mutable b = false
