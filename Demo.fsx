@@ -15,7 +15,7 @@ auxA.Paint.Add(
     fun e -> 
         let g = e.Graphics
         let b = Brushes.LightBlue
-        g.FillEllipse(b, 0,0,200,200)
+        g.FillRectangle(b, 0,0,200,200)
 )
 
 let mutable b = false
@@ -37,11 +37,21 @@ f.Controls.Add(auxC)
 auxC.LWControls.Add(auxA)
 auxA.LWControls.Add(auxB)
 let t = new Timer()
+let mutable counter = 4;
+let mutable bo = true;
 t.Tick.Add(
     fun _ -> 
         auxA.Matrixs.XRotate(1.f,PointF(100.f,100.f))
-        auxB.Location<-PointF( (auxB.Location.X+0.1f) % 20.f, (auxB.Location.Y+0.1f) % 20.f )
+        auxB.Location<-PointF( (auxB.Location.X+0.1f) % 50.f, (auxB.Location.Y+0.1f) % 50.f )
+        if bo then
+            auxB.Matrixs.XScale(1.1f,1.1f,PointF(25.f,25.f))
+            counter <- (counter + 1)
+        else
+            auxB.Matrixs.XScale(0.90909f,0.90909f,PointF(25.f,25.f))
+            counter <- (counter - 1)
+        if counter = 0 then bo <- true
+        if counter = 9 then bo <- false
         auxC.Invalidate()
         )
-t.Interval <- 10
+t.Interval <- 16
 t.Start()
