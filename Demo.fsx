@@ -1,5 +1,4 @@
 open System.Drawing.Drawing2D
-open System
 #load "FrankLWC.fsx"
 open FrankLWC
 open System.Windows.Forms
@@ -56,7 +55,10 @@ t.Tick.Add(
             counter <- (counter - 1)
         if counter = 0 then bo <- true
         if counter = 9 then bo <- false
-        auxC.Invalidate()
+        (*sono tutti e 3 equivalenti*)
+        //auxA.Invalidate()
+        auxB.Invalidate()
+        //auxC.Invalidate()
         )
 t.Interval <- 16
 t.Start()
