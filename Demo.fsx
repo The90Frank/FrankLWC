@@ -10,16 +10,16 @@ let auxC = new LWContainer(Location = Point(0,0), Dock = DockStyle.Fill)
 auxC.BackColor <- Color.Brown
 
 let gp = new GraphicsPath()
-gp.AddBezier(PointF(0.f,0.f),PointF(0.f,300.f),PointF(300.f,300.f),PointF(0.f,0.f))
+gp.AddBezier(PointF(0.f,0.f),PointF(150.f,300.f),PointF(300.f,300.f),PointF(300.f,0.f))
 let reg = new Region(gp)
-let auxA = new LWControl(Location = PointF(100.f,50.f), Region = reg)
-let auxB = new LWControl(Location = PointF(10.f,10.f), Region = new Region(new Rectangle(0,0,50,50)))
+let auxA = new LWControl(Location = PointF(100.f,50.f), Region = reg, BackColor = Color.Orange)
+let auxB = new LWControl(Location = PointF(10.f,10.f), Region = new Region(new Rectangle(0,0,50,50)), BackColor = Color.Wheat)
 
 auxA.Paint.Add(
     fun e -> 
         let g = e.Graphics
         let b = Brushes.LightBlue
-        g.FillRectangle(b, 0,0,900,900)
+        g.FillRectangle(b, 0,0,350,200)
 )
 
 let mutable b = false
@@ -29,12 +29,12 @@ auxB.Paint.Add(
         let mutable br = Brushes.DarkViolet
         if b then
             br <- Brushes.LemonChiffon
-        g.FillRectangle(br, 0,0,1000,1000)
+        g.FillRectangle(br, 30,20,200,50)
 )
 auxB.MouseDown.Add(
     fun e ->
         b <- not(b)
-        auxC.Invalidate()
+        auxB.Invalidate()
 )
 
 f.Controls.Add(auxC)
