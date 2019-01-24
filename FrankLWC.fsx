@@ -46,6 +46,7 @@ type AbstractLWControl() =
     let mutable region = new Region()
     let mutable matrixs = TransformMatrixs()
     let mutable select = false
+    let mutable color = Color.LightGray
     let mousedownevt = new Event<MouseEventArgs>()
     let mousemoveevt = new Event<MouseEventArgs>()
     let mouseupevt = new Event<MouseEventArgs>()
@@ -56,6 +57,9 @@ type AbstractLWControl() =
     let paintevt = new Event<PaintEventArgs>()
     let invalidevt = new Event<_>()
 
+    member this.BackColor 
+        with get() = color
+        and set(v:Color) = color <- v
     member this.Matrixs 
         with get() = matrixs
         and set(v:TransformMatrixs) = matrixs <- v
@@ -206,9 +210,10 @@ type LWControl() as this =
         | None -> ()
         keypressevt.Trigger(e)
     override this.OnPaint e = 
-        paintevt.Trigger(e)
         let g = e.Graphics
-        g.SmoothingMode <- System.Drawing.Drawing2D.SmoothingMode.AntiAlias
+        let br = new SolidBrush(this.BackColor)
+        g.FillRegion(br, this.Region)
+        paintevt.Trigger(e)
         for idx in (lwcontrols.Count - 1) .. -1 .. 0 do
             let c = lwcontrols.[idx]
             let m = g.Transform
