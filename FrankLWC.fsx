@@ -232,3 +232,84 @@ type LWControl() as this =
     override this.Invalidate _ = invalidevt.Trigger()
 
 and LWContainer() as this =
+    inherit UserControl()
+
+    let lwcontrols = ResizeArray<AbstractLWControl>()
+    let publicarray = new LWArray(lwcontrols)
+    let HitTest (p:PointF) (r:Region) =
+        r.IsVisible(p)
+    let transformPoint (m:Drawing2D.Matrix) (p:PointF) =
+        let pts = [| p |]
+        m.TransformPoints(pts)
+        pts.[0]
+    do 
+        this.SetStyle(ControlStyles.DoubleBuffer, true)
+        this.SetStyle(ControlStyles.AllPaintingInWmPaint, true)
+        publicarray.AddE.Add(fun c -> c.Invalidated.Add(fun _ -> this.Invalidate()))
+
+    member this.LWControls with get() = publicarray
+    override this.OnResize e =
+        for idx in 0 .. (lwcontrols.Count - 1) do
+            let c = lwcontrols.[idx]
+            c.OnResize(e)   
+    override this.OnKeyDown e =
+        match (lwcontrols |> Seq.tryFind (fun c -> c.Select)) with
+        | Some c -> c.OnKeyDown(e)
+        | None -> ()
+    override this.OnKeyUp e =
+        match (lwcontrols |> Seq.tryFind (fun c -> c.Select)) with
+        | Some c -> c.OnKeyUp(e)
+        | None -> ()
+    override this.OnKeyPress e =
+        match (lwcontrols |> Seq.tryFind (fun c -> c.Select)) with
+        | Some c -> c.OnKeyPress(e)
+        | None -> ()   
+    override this.OnMouseDown e =
+        for idx in 0 .. (lwcontrols.Count - 1) do
+            let c = lwcontrols.[idx]
+            c.Select <- false
+        let p = PointF(single e.X, single e.Y)
+        match (lwcontrols |> Seq.tryFind (fun c -> 
+            let pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
+            let r = c.Region
+            r.Transform(c.Matrixs.W2V)
+            HitTest pp r
+            )) with
+        | Some c ->
+            let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
+            pp <- transformPoint c.Matrixs.V2W pp
+            let ee = new MouseEventArgs(MouseButtons.Left,1, int pp.X, int pp.Y,0) 
+            c.OnMouseDown(ee)
+        | None -> ()
+    override this.OnMouseUp e =
+        let p = PointF(single e.X, single e.Y)
+        for idx in 0 .. (lwcontrols.Count - 1) do
+            let c = lwcontrols.[idx]
+            c.OnMouseUp(e)
+    override this.OnMouseMove e =
+        let p = PointF(single e.X, single e.Y)
+        match (lwcontrols |> Seq.tryFind (fun c -> 
+            let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
+            let r = c.Region
+            r.Transform(c.Matrixs.W2V)
+            HitTest pp r            
+            )) with
+        | Some c ->
+            let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
+            pp <- transformPoint c.Matrixs.V2W pp
+            let ee = new MouseEventArgs(MouseButtons.None,1, int pp.X, int pp.Y,0) 
+            c.OnMouseMove(ee)
+        | None -> ()
+    override this.OnPaint e =
+        let g = e.Graphics
+        g.SmoothingMode <- System.Drawing.Drawing2D.SmoothingMode.AntiAlias
+        for idx in (lwcontrols.Count - 1) .. -1 .. 0 do
+            let c = lwcontrols.[idx]
+            let m = g.Transform
+            m.Translate(c.Location.X,c.Location.Y)
+            m.Multiply(c.Matrixs.W2V)
+            g.Transform <- m
+            g.SetClip(c.Region, CombineMode.Replace)
+            c.OnPaint e
+            g.ResetClip()
+        done
