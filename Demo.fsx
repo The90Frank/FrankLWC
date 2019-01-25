@@ -43,7 +43,7 @@ type LWCButton() as this =
         and set(v) = press <- v
 
 ////////////////////////////
-let f = new Form(Size = Size(600,400))
+let f = new Form(Size = Size(600,400), Text = "MyForm")
 f.Show()
 
 let c = new LWContainer(Location = Point(0,0), Dock = DockStyle.Fill)
@@ -52,7 +52,6 @@ f.Controls.Add(c)
 let gpP = new GraphicsPath()
 gpP.AddRectangle(new Rectangle(0,0,500,300))
 let papper = new LWControl(Location = PointF(50.f,50.f), GraphicsPath = gpP, BackColor = Color.White)
-c.LWControls.Add(papper)
 
 let bar1 = [|"+";"-";"L";"R";"▲";"▼";"◄";"►"|]
 let fu = [|
@@ -132,6 +131,7 @@ auxB.MouseDown.Add(
 
 papper.LWControls.Add(auxA)
 auxA.LWControls.Add(auxB)
+c.LWControls.Add(papper)
 let t = new Timer()
 let mutable counter = 4;
 let mutable bo = true;
