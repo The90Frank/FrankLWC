@@ -1,19 +1,112 @@
+open System.Drawing
 open System.Drawing.Drawing2D
 #load "FrankLWC.fsx"
 open FrankLWC
 open System.Windows.Forms
-open System.Drawing
-let f = new Form(Size = Size(500,500))
+
+////////////////////////////
+type LWCButton() as this = 
+    inherit LWControl()
+
+    let mutable s = ""
+    let mutable b = Brushes.Black
+    let mutable p = PointF(single 0,single 0)
+    let mutable f = new Font("Arial Black", 12.f)
+    let mutable press = false
+
+    do
+        this.Paint.Add(fun e ->
+            let g = e.Graphics
+            ()//tutto il disegno di sfondo del bottone, non necessario in questo caso
+            //[!] da usare da modello per evitare di fare override ed alterare la struttura degli LWC
+        )
+        this.BackColor <- Color.DarkGray
+    
+    member this.TextString
+        with get() = s
+        and set(v) = s <- v
+
+    member this.TextBrush
+        with get() = b
+        and set(v) = b <- v
+
+    member this.TextPoint
+        with get() = p
+        and set(v) = p <- v
+
+    member this.TextFont
+        with get() = f
+        and set(v) = f <- v
+
+    member this.Press
+        with get() = press
+        and set(v) = press <- v
+
+////////////////////////////
+let f = new Form(Size = Size(600,400))
 f.Show()
 
-let auxC = new LWContainer(Location = Point(0,0), Dock = DockStyle.Fill)
-auxC.BackColor <- Color.Brown
+let c = new LWContainer(Location = Point(0,0), Dock = DockStyle.Fill)
+f.Controls.Add(c)
 
-let gp = new GraphicsPath()
-gp.AddBezier(PointF(0.f,0.f),PointF(150.f,300.f),PointF(300.f,300.f),PointF(300.f,0.f))
-let reg = new Region(gp)
-let auxA = new LWControl(Location = PointF(100.f,50.f), Region = reg, BackColor = Color.Orange)
-let auxB = new LWControl(Location = PointF(10.f,10.f), Region = new Region(new Rectangle(0,0,50,50)), BackColor = Color.Wheat)
+let gpP = new GraphicsPath()
+gpP.AddRectangle(new Rectangle(0,0,500,300))
+let papper = new LWControl(Location = PointF(50.f,50.f), GraphicsPath = gpP, BackColor = Color.White)
+c.LWControls.Add(papper)
+
+let bar1 = [|"+";"-";"L";"R";"▲";"▼";"◄";"►"|]
+let fu = [|
+    fun _ -> (papper.Matrixs.NScale(1.1f,1.1f); papper.Invalidate());
+    fun _ -> (papper.Matrixs.NScale(0.909f,0.909f); papper.Invalidate());
+    fun _ -> (papper.Matrixs.NRotate(1.f); papper.Invalidate());
+    fun _ -> (papper.Matrixs.NRotate(-1.f); papper.Invalidate());
+    fun _ -> (papper.Location <- PointF(papper.Location.X, papper.Location.Y + 1.f); papper.Invalidate());
+    fun _ -> (papper.Location <- PointF(papper.Location.X, papper.Location.Y - 1.f); papper.Invalidate());
+    fun _ -> (papper.Location <- PointF(papper.Location.X + 1.f, papper.Location.Y); papper.Invalidate());
+    fun _ -> (papper.Location <- PointF(papper.Location.X - 1.f, papper.Location.Y); papper.Invalidate());
+|]
+let size = 20.f
+
+for i in 0 .. (bar1.Length - 1) do
+    let ti = new Timer()
+    ti.Interval <- 16
+    ti.Tick.Add(fu.[i])
+    let b = new LWCButton()
+    b.TextString <- bar1.[i]
+    b.Location <- PointF(size * single i,0.f)
+    b.TextFont <- new Font("Arial Black", 10.f)
+    let gp = new GraphicsPath()
+    gp.AddRectangle(new RectangleF(0.f,0.f,size,size))
+    b.GraphicsPath <- gp
+    b.MouseDown.Add(fun e -> 
+        printfn "%s" b.TextString
+        b.Press <- true
+        b.Invalidate()
+        ti.Start()
+        )
+    b.MouseUp.Add(fun e ->
+        ti.Stop()
+        b.Press <- false
+        b.Invalidate()
+        )
+    b.Paint.Add(fun e ->
+        let g = e.Graphics
+        let rect = new RectangleF(1.f,1.f,size-2.f,size-2.f)
+        if b.Press then
+            g.FillRectangle(Brushes.SlateGray,rect)
+        else
+            g.FillRectangle(Brushes.DimGray,rect)
+        g.DrawString(b.TextString,b.TextFont,b.TextBrush,b.TextPoint)
+        )
+    c.LWControls.Add(b)
+
+/////////////////////////////////////////////////////////
+let gp1 = new GraphicsPath()
+gp1.AddBezier(PointF(0.f,0.f),PointF(150.f,300.f),PointF(300.f,300.f),PointF(300.f,0.f))
+let gp2 = new GraphicsPath()
+gp2.AddRectangle(new Rectangle(0,0,50,50))
+let auxA = new LWControl(Location = PointF(100.f,50.f), GraphicsPath = gp1, BackColor = Color.Orange)
+let auxB = new LWControl(Location = PointF(10.f,10.f), GraphicsPath = gp2, BackColor = Color.Wheat)
 
 auxA.Paint.Add(
     fun e -> 
@@ -37,8 +130,7 @@ auxB.MouseDown.Add(
         auxB.Invalidate()
 )
 
-f.Controls.Add(auxC)
-auxC.LWControls.Add(auxA)
+papper.LWControls.Add(auxA)
 auxA.LWControls.Add(auxB)
 let t = new Timer()
 let mutable counter = 4;
@@ -55,7 +147,7 @@ t.Tick.Add(
             counter <- (counter - 1)
         if counter = 0 then bo <- true
         if counter = 9 then bo <- false
-        (*sono tutti e 3 equivalenti*)
+        //sono tutti e 3 equivalenti
         //auxA.Invalidate()
         auxB.Invalidate()
         //auxC.Invalidate()
