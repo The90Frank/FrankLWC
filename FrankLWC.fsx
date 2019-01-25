@@ -187,6 +187,7 @@ type LWControl() as this =
         let br = new SolidBrush(this.BackColor)
         g.FillRegion(br, this.Region)
         base.OnPaint(e)
+        let auxm = g.Transform
         for idx in (lwcontrols.Count - 1) .. -1 .. 0 do
             let c = lwcontrols.[idx]
             let m = g.Transform
@@ -196,6 +197,7 @@ type LWControl() as this =
             g.SetClip(c.Region, CombineMode.Intersect)
             c.OnPaint e
             g.ResetClip()
+            g.Transform <- auxm
         done   
     override this.OnResize e = 
         for idx in 0 .. (lwcontrols.Count - 1) do
@@ -276,6 +278,7 @@ and LWContainer() as this =
     override this.OnPaint e =
         let g = e.Graphics
         g.SmoothingMode <- System.Drawing.Drawing2D.SmoothingMode.AntiAlias
+        let auxm = g.Transform
         for idx in (lwcontrols.Count - 1) .. -1 .. 0 do
             let c = lwcontrols.[idx]
             let m = g.Transform
@@ -285,4 +288,5 @@ and LWContainer() as this =
             g.SetClip(c.Region, CombineMode.Replace)
             c.OnPaint e
             g.ResetClip()
+            g.Transform <- auxm
         done
