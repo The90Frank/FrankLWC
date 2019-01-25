@@ -43,7 +43,6 @@ type TransformMatrixs() =
 
 type AbstractLWControl() =
     let mutable location = PointF(0.f, 0.f)
-    let mutable region = new Region()
     let mutable matrixs = TransformMatrixs()
     let mutable select = false
     let mutable color = Color.LightGray
