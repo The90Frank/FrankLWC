@@ -55,7 +55,7 @@ type AbstractLWControl() =
     let keypressevt = new Event<KeyPressEventArgs>()
     let resizeevt = new Event<System.EventArgs>()
     let paintevt = new Event<PaintEventArgs>()
-    let invalidevt = new Event<_>()
+    let invalidevt = new Event<obj>()
 
     member this.BackColor 
         with get() = color
@@ -73,15 +73,6 @@ type AbstractLWControl() =
         with get() = location
         and set(v:PointF) = location <- v
 
-    abstract MouseDown : IEvent<MouseEventArgs>
-    abstract MouseMove : IEvent<MouseEventArgs>
-    abstract MouseUp : IEvent<MouseEventArgs>
-    abstract KeyDown : IEvent<KeyEventArgs>
-    abstract KeyUp : IEvent<KeyEventArgs>
-    abstract KeyPress : IEvent<KeyPressEventArgs>
-    abstract Resize : IEvent<System.EventArgs>
-    abstract Paint : IEvent<PaintEventArgs>
-    abstract Invalidated : IEvent<obj>
     abstract OnMouseDown : MouseEventArgs -> unit
     abstract OnMouseUp : MouseEventArgs -> unit
     abstract OnMouseMove : MouseEventArgs -> unit
@@ -92,24 +83,24 @@ type AbstractLWControl() =
     abstract OnResize : System.EventArgs -> unit
     abstract Invalidate : _ -> unit
 
-    default this.MouseDown = mousedownevt.Publish
-    default this.MouseMove = mousemoveevt.Publish
-    default this.MouseUp = mouseupevt.Publish
-    default this.KeyDown = keydownevt.Publish
-    default this.KeyUp = keyupevt.Publish
-    default this.KeyPress = keypressevt.Publish
-    default this.Resize = resizeevt.Publish
-    default this.Paint = paintevt.Publish
-    default this.Invalidated = invalidevt.Publish
-    default this.OnMouseDown e = ()
-    default this.OnMouseUp e = ()
-    default this.OnMouseMove e = ()
-    default this.OnKeyDown e = ()
-    default this.OnKeyUp e = ()
-    default this.OnKeyPress e = ()
-    default this.OnPaint e = ()
-    default this.OnResize e = ()
-    default this.Invalidate _ = ()
+    member this.MouseDown = mousedownevt.Publish
+    member this.MouseMove = mousemoveevt.Publish
+    member this.MouseUp = mouseupevt.Publish
+    member this.KeyDown = keydownevt.Publish
+    member this.KeyUp = keyupevt.Publish
+    member this.KeyPress = keypressevt.Publish
+    member this.Resize = resizeevt.Publish
+    member this.Paint = paintevt.Publish
+    member this.Invalidated = invalidevt.Publish
+    default this.OnMouseDown e = mousedownevt.Trigger(e)
+    default this.OnMouseUp e = mouseupevt.Trigger(e)
+    default this.OnMouseMove e = mousemoveevt.Trigger(e)
+    default this.OnKeyDown e = keydownevt.Trigger(e)
+    default this.OnKeyUp e = keyupevt.Trigger(e)
+    default this.OnKeyPress e = keypressevt.Trigger(e)
+    default this.OnPaint e = paintevt.Trigger(e)
+    default this.OnResize e = resizeevt.Trigger(e)
+    default this.Invalidate _ = invalidevt.Trigger()
 
 type LWArray(lwcontrols : ResizeArray<AbstractLWControl>) =
     let addevt = new Event<AbstractLWControl>()
@@ -122,15 +113,6 @@ type LWArray(lwcontrols : ResizeArray<AbstractLWControl>) =
 
 type LWControl() as this =
     inherit AbstractLWControl()
-    let mousedownevt = new Event<MouseEventArgs>()
-    let mousemoveevt = new Event<MouseEventArgs>()
-    let mouseupevt = new Event<MouseEventArgs>()
-    let keydownevt = new Event<KeyEventArgs>()
-    let keyupevt = new Event<KeyEventArgs>()
-    let keypressevt = new Event<KeyPressEventArgs>()
-    let resizeevt = new Event<System.EventArgs>()
-    let paintevt = new Event<PaintEventArgs>()
-    let invalidevt = new Event<_>()
     //let mutable parent : LWContainer = Unchecked.defaultof<LWContainer> // non più necessario, lo tengo per ricordo
     let lwcontrols = ResizeArray<AbstractLWControl>() //ogni LWC è container a sua volta
     let publicarray = new LWArray(lwcontrols)
@@ -145,15 +127,6 @@ type LWControl() as this =
         publicarray.AddE.Add(fun c -> c.Invalidated.Add(fun _ -> this.Invalidate()))
 
     member this.LWControls with get() = publicarray
-    override this.MouseDown = mousedownevt.Publish
-    override this.MouseMove = mousemoveevt.Publish
-    override this.MouseUp = mouseupevt.Publish
-    override this.KeyDown = keydownevt.Publish
-    override this.KeyUp = keyupevt.Publish
-    override this.KeyPress = keypressevt.Publish
-    override this.Resize = resizeevt.Publish
-    override this.Paint = paintevt.Publish
-    override this.Invalidated = invalidevt.Publish
     override this.OnMouseDown e = 
         this.Select <- true
         for idx in 0 .. (lwcontrols.Count - 1) do
@@ -172,7 +145,7 @@ type LWControl() as this =
             let ee = new MouseEventArgs(MouseButtons.Left,1, int pp.X, int pp.Y,0) 
             c.OnMouseDown(ee)
         | None -> ()
-        mousedownevt.Trigger(e)
+        base.OnMouseDown(e)
     override this.OnMouseMove e = 
         let p = PointF(single e.X, single e.Y)
         match (lwcontrols |> Seq.tryFind (fun c -> 
@@ -187,33 +160,33 @@ type LWControl() as this =
             let ee = new MouseEventArgs(MouseButtons.None,1, int pp.X, int pp.Y,0) 
             c.OnMouseMove(ee)
         | None -> ()
-        mousemoveevt.Trigger(e)
+        base.OnMouseMove(e)
     override this.OnMouseUp e = 
         let p = PointF(single e.X, single e.Y)
         for idx in 0 .. (lwcontrols.Count - 1) do
             let c = lwcontrols.[idx]
             c.OnMouseUp(e)
-        mouseupevt.Trigger(e)
+        base.OnMouseUp(e)
     override this.OnKeyDown e = 
         match (lwcontrols |> Seq.tryFind (fun c -> c.Select)) with
         | Some c -> c.OnKeyDown(e)
         | None -> ()
-        keydownevt.Trigger(e)
+        base.OnKeyDown(e)
     override this.OnKeyUp e = 
         match (lwcontrols |> Seq.tryFind (fun c -> c.Select)) with
         | Some c -> c.OnKeyUp(e)
         | None -> ()
-        keyupevt.Trigger(e)
+        base.OnKeyUp(e)
     override this.OnKeyPress e = 
         match (lwcontrols |> Seq.tryFind (fun c -> c.Select)) with
         | Some c -> c.OnKeyPress(e)
         | None -> ()
-        keypressevt.Trigger(e)
+        base.OnKeyPress(e)
     override this.OnPaint e = 
         let g = e.Graphics
         let br = new SolidBrush(this.BackColor)
         g.FillRegion(br, this.Region)
-        paintevt.Trigger(e)
+        base.OnPaint(e)
         for idx in (lwcontrols.Count - 1) .. -1 .. 0 do
             let c = lwcontrols.[idx]
             let m = g.Transform
@@ -228,8 +201,8 @@ type LWControl() as this =
         for idx in 0 .. (lwcontrols.Count - 1) do
             let c = lwcontrols.[idx]
             c.OnResize(e)
-        resizeevt.Trigger(e)
-    override this.Invalidate _ = invalidevt.Trigger()
+        base.OnResize(e)
+    override this.Invalidate _ = base.Invalidate()
 
 and LWContainer() as this =
     inherit UserControl()
