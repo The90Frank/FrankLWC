@@ -47,6 +47,7 @@ type AbstractLWControl() =
     let mutable matrixs = TransformMatrixs()
     let mutable select = false
     let mutable color = Color.LightGray
+    let mutable graphicspath = new GraphicsPath()
     let mousedownevt = new Event<MouseEventArgs>()
     let mousemoveevt = new Event<MouseEventArgs>()
     let mouseupevt = new Event<MouseEventArgs>()
@@ -64,8 +65,11 @@ type AbstractLWControl() =
         with get() = matrixs
         and set(v:TransformMatrixs) = matrixs <- v
     member this.Region 
-        with get() = region.Clone()
-        and set(v:Region) = region <- v.Clone()
+        with get() = new Region(graphicspath)
+    
+    member this.GraphicsPath
+        with get() = graphicspath
+        and set(v:GraphicsPath) = graphicspath <- v
     member this.Select
         with get() = select
         and set(v:bool) = select <- v
