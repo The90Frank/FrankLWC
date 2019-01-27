@@ -150,7 +150,7 @@ t.Tick.Add(
         //sono tutti e 3 equivalenti
         //auxA.Invalidate()
         auxB.Invalidate()
-        //auxC.Invalidate()
+        //papper.Invalidate()
         )
 t.Interval <- 16
 t.Start()
