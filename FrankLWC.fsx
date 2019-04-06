@@ -45,6 +45,7 @@ type AbstractLWControl() =
     let mutable location = PointF(0.f, 0.f)
     let mutable matrixs = TransformMatrixs()
     let mutable select = false
+    let mutable draggable = false
     let mutable color = Color.LightGray
     let mutable graphicspath = new GraphicsPath()
     let mousedownevt = new Event<MouseEventArgs>()
@@ -72,6 +73,9 @@ type AbstractLWControl() =
     member this.Select
         with get() = select
         and set(v:bool) = select <- v
+    member this.Draggable
+        with get() = draggable
+        and set(v:bool) = draggable <- v
     member this.Location
         with get() = location
         and set(v:PointF) = location <- v
@@ -117,9 +121,10 @@ type LWArray(lwcontrols : ResizeArray<AbstractLWControl>) =
 type LWControl() as this =
     inherit AbstractLWControl()
     //let mutable parent : LWContainer = Unchecked.defaultof<LWContainer> // non più necessario, lo tengo per ricordo
+    let mutable dragstate = None
     let lwcontrols = ResizeArray<AbstractLWControl>() //ogni LWC è container a sua volta
-    let publicarray = new LWArray(lwcontrols)
-    let HitTest (p:PointF) (r:Region) =
+    let publicarray = LWArray(lwcontrols)
+    let hitTest (p:PointF) (r:Region) =
         r.IsVisible(p)
     let transformPoint (m:Drawing2D.Matrix) (p:PointF) =
         let pts = [| p |]
@@ -140,14 +145,16 @@ type LWControl() as this =
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
             let r = c.Region
             r.Transform(c.Matrixs.W2V)
-            HitTest pp r
+            hitTest pp r
             )) with
         | Some c ->
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
             pp <- transformPoint c.Matrixs.V2W pp
-            let ee = new MouseEventArgs(MouseButtons.Left,1, int pp.X, int pp.Y,0) 
+            let ee = MouseEventArgs(MouseButtons.Left,1, int pp.X, int pp.Y,0) 
             c.OnMouseDown(ee)
-        | None -> ()
+        | None -> 
+            if this.Draggable then
+                dragstate <- Some(p)
         base.OnMouseDown(e)
     override this.OnMouseMove e = 
         let p = PointF(single e.X, single e.Y)
@@ -155,20 +162,27 @@ type LWControl() as this =
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
             let r = c.Region
             r.Transform(c.Matrixs.W2V)
-            HitTest pp r
+            hitTest pp r
             )) with
         | Some c ->
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
             pp <- transformPoint c.Matrixs.V2W pp
-            let ee = new MouseEventArgs(MouseButtons.None,1, int pp.X, int pp.Y,0) 
+            let ee = MouseEventArgs(MouseButtons.None,1, int pp.X, int pp.Y,0) 
             c.OnMouseMove(ee)
-        | None -> ()
+        | None -> 
+            match dragstate with
+                | Some c ->
+                    let dx, dy = (p.X - c.X), (p.Y - c.Y)
+                    this.Matrixs.NTranslate(dx,dy) 
+                    this.Invalidate()
+                | None -> ()
         base.OnMouseMove(e)
     override this.OnMouseUp e = 
         let p = PointF(single e.X, single e.Y)
         for idx in 0 .. (lwcontrols.Count - 1) do
             let c = lwcontrols.[idx]
             c.OnMouseUp(e)
+        dragstate <- None
         base.OnMouseUp(e)
     override this.OnKeyDown e = 
         match (lwcontrols |> Seq.tryFind (fun c -> c.Select)) with
@@ -214,8 +228,8 @@ and LWContainer() as this =
     inherit UserControl()
 
     let lwcontrols = ResizeArray<AbstractLWControl>()
-    let publicarray = new LWArray(lwcontrols)
-    let HitTest (p:PointF) (r:Region) =
+    let publicarray = LWArray(lwcontrols)
+    let hitTest (p:PointF) (r:Region) =
         r.IsVisible(p)
     let transformPoint (m:Drawing2D.Matrix) (p:PointF) =
         let pts = [| p |]
@@ -252,12 +266,12 @@ and LWContainer() as this =
             let pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
             let r = c.Region
             r.Transform(c.Matrixs.W2V)
-            HitTest pp r
+            hitTest pp r
             )) with
         | Some c ->
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
             pp <- transformPoint c.Matrixs.V2W pp
-            let ee = new MouseEventArgs(MouseButtons.Left,1, int pp.X, int pp.Y,0) 
+            let ee = MouseEventArgs(MouseButtons.Left,1, int pp.X, int pp.Y,0) 
             c.OnMouseDown(ee)
         | None -> ()
     override this.OnMouseUp e =
@@ -271,12 +285,12 @@ and LWContainer() as this =
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
             let r = c.Region
             r.Transform(c.Matrixs.W2V)
-            HitTest pp r            
+            hitTest pp r            
             )) with
         | Some c ->
             let mutable pp = PointF(p.X-c.Location.X,p.Y-c.Location.Y)
             pp <- transformPoint c.Matrixs.V2W pp
-            let ee = new MouseEventArgs(MouseButtons.None,1, int pp.X, int pp.Y,0) 
+            let ee = MouseEventArgs(MouseButtons.None,1, int pp.X, int pp.Y,0) 
             c.OnMouseMove(ee)
         | None -> ()
     override this.OnPaint e =
