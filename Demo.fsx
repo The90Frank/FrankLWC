@@ -50,8 +50,8 @@ let c = new LWContainer(Location = Point(0,0), Dock = DockStyle.Fill)
 f.Controls.Add(c)
 
 let gpP = new GraphicsPath()
-gpP.AddRectangle(new Rectangle(0,0,500,300))
-let papper = new LWControl(Location = PointF(50.f,50.f), GraphicsPath = gpP, BackColor = Color.White)
+gpP.AddRectangle(Rectangle(0,0,500,300))
+let papper = LWControl(Location = PointF(50.f,50.f), GraphicsPath = gpP, BackColor = Color.White)
 
 let bar1 = [|"+";"-";"L";"R";"▲";"▼";"◄";"►"|]
 let fu = [|
@@ -70,15 +70,15 @@ for i in 0 .. (bar1.Length - 1) do
     let ti = new Timer()
     ti.Interval <- 16
     ti.Tick.Add(fu.[i])
-    let b = new LWCButton()
+    let b = LWCButton()
     b.TextString <- bar1.[i]
     b.Location <- PointF(size * single i,0.f)
     b.TextFont <- new Font("Arial Black", 10.f)
     let gp = new GraphicsPath()
-    gp.AddRectangle(new RectangleF(0.f,0.f,size,size))
+    gp.AddRectangle(RectangleF(0.f,0.f,size,size))
     b.GraphicsPath <- gp
     b.MouseDown.Add(fun e -> 
-        printfn "%s" b.TextString
+        //printfn "%s" b.TextString
         b.Press <- true
         b.Invalidate()
         ti.Start()
@@ -90,7 +90,7 @@ for i in 0 .. (bar1.Length - 1) do
         )
     b.Paint.Add(fun e ->
         let g = e.Graphics
-        let rect = new RectangleF(1.f,1.f,size-2.f,size-2.f)
+        let rect = RectangleF(1.f,1.f,size-2.f,size-2.f)
         if b.Press then
             g.FillRectangle(Brushes.SlateGray,rect)
         else
@@ -103,9 +103,9 @@ for i in 0 .. (bar1.Length - 1) do
 let gp1 = new GraphicsPath()
 gp1.AddBezier(PointF(0.f,0.f),PointF(150.f,300.f),PointF(300.f,300.f),PointF(300.f,0.f))
 let gp2 = new GraphicsPath()
-gp2.AddRectangle(new Rectangle(0,0,50,50))
-let auxA = new LWControl(Location = PointF(100.f,50.f), GraphicsPath = gp1, BackColor = Color.Orange)
-let auxB = new LWControl(Location = PointF(10.f,10.f), GraphicsPath = gp2, BackColor = Color.Wheat)
+gp2.AddRectangle(Rectangle(0,0,50,50))
+let auxA = LWControl(Location = PointF(100.f,50.f), GraphicsPath = gp1, BackColor = Color.Orange)
+let auxB = LWControl(Location = PointF(10.f,10.f), GraphicsPath = gp2, BackColor = Color.Wheat)
 
 auxA.Paint.Add(
     fun e -> 
@@ -131,6 +131,8 @@ auxB.MouseDown.Add(
 
 papper.LWControls.Add(auxA)
 auxA.LWControls.Add(auxB)
+auxA.Draggable <- true
+auxB.Draggable <- true
 c.LWControls.Add(papper)
 let t = new Timer()
 let mutable counter = 4;
@@ -154,3 +156,4 @@ t.Tick.Add(
         )
 t.Interval <- 16
 t.Start()
+//t.Stop()
